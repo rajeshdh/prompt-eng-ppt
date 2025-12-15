@@ -231,9 +231,6 @@ const slides = [
         <p className="text-xl sm:text-2xl text-slate-400 max-w-3xl font-light">
           Stop chatting. Start building reliable systems with LLMs.
         </p>
-        <div className="mt-12 font-mono text-slate-500 bg-slate-900 px-6 py-2 rounded border border-slate-700">
-          &lt;duration&gt;2 Hours&lt;/duration&gt;
-        </div>
       </div>
     ),
   },
@@ -422,9 +419,12 @@ output: "Four", "4", "It's 4."`}
   // NEW Slide 6: Parameters 2 (Advanced)
   {
     id: "advanced_controls",
-    notes: `Stop Sequences: CRITICAL for chat apps. Tells the model "Stop generating here". Prevents it from hallucinating the user's next reply.
-    Frequency Penalty: Reduces repetition of exact words. Good for creative writing.
-    Presence Penalty: Encourages introducing new topics. Good for brainstorming.`,
+    notes: `Advanced controls matter in real applications.
+Stop sequences tell the model exactly when to stop and prevent it from continuing as the user.
+Without stop sequences, chat systems often hallucinate extra dialogue.
+Frequency and presence penalties mainly affect repetition and topic drift.
+In production, temperature, max tokens, and stop sequences usually cover most needs.
+`,
     render: () => (
       <div className="min-h-full flex flex-col justify-center py-8">
         <Title>Advanced Controls</Title>
@@ -479,11 +479,12 @@ output: "Four", "4", "It's 4."`}
   // NEW Slide 7: Fine-Tuning
   {
     id: "finetuning",
-    notes: `The Fine-Tuning Trap: Developers love to fine-tune. Usually, you don't need it.
-    Prompting = Instructions ("Summarize this").
-    Fine-Tuning = Gym Training (Learning a new language or very specific style).
-    RAG = Open Book Test (Providing facts).
-    Use Fine-Tuning only when you have 1000+ examples and prompting fails.`,
+    notes: `Fine-tuning is often used too early.
+Prompting is instructions, fine-tuning is training.
+Logic, reasoning, and formatting are best solved with prompting.
+Fine-tuning only makes sense when you have many examples and prompting clearly fails.
+Most apps should start with prompting plus context, not training.
+`,
     render: () => (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-0 min-h-full -m-4 sm:-m-12">
         <div className="p-8 sm:p-12 flex flex-col justify-center">
@@ -528,8 +529,12 @@ output: "Four", "4", "It's 4."`}
   // Slide 8: Few-Shot
   {
     id: "few-shot",
-    notes: `Why this matters: This is the single most effective technique for formatting. If you want CSV output, give 3 examples of CSV output.
-    Pro Tip: Even "One-Shot" (giving just 1 example) helps massively.`,
+    notes: `Few-shot prompting is one of the most effective techniques.
+Models complete patterns, so showing examples sets the format.
+Even a single example can improve reliability.
+Few-shot works especially well for classification and structured output.
+Add examples before rewriting the prompt.
+`,
     render: () => (
       <div className="min-h-full flex flex-col justify-center py-8">
         <Title>Technique 1: Few-Shot Prompting</Title>
@@ -573,8 +578,12 @@ Input: "This food is bad." -> Sentiment:
   // Slide 9: CoT
   {
     id: "cot",
-    notes: `The Magic Phrase: "Let's think step by step" (Zero-Shot CoT).
-    Why it works: LLMs generate token by token. If it outputs the answer "11" immediately, it hasn't computed the math. If it outputs the *steps*, it allows the neural net to attend to the intermediate numbers.`,
+    notes: `LLMs generate text token by token.
+If they jump straight to the answer, reasoning can fail silently.
+Step-by-step instructions improve accuracy on complex tasks.
+In production, you may not expose full reasoning, only structured steps.
+The goal is to slow the model down so it can reason correctly.
+`,
     render: () => (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-0 min-h-full -m-4 sm:-m-12">
         <div className="p-8 sm:p-12 flex flex-col justify-center z-10 bg-slate-800">
@@ -626,10 +635,12 @@ Answer: 11.`}
   // Slide 10: Hands On 1
   {
     id: "handson1",
-    notes: `Activity (10 Mins):
-    Instructions: Give them 5 minutes.
-    Trick: The "Bananas" are a distractor. Basic models often get confused.
-    Discussion: Ask who got the wrong answer first?`,
+    notes: `This exercise shows why reasoning instructions matter.
+The bananas are intentional distractions.
+Weak prompts often fail without step-by-step reasoning.
+With reasoning instructions, accuracy improves immediately.
+This demonstrates when and why to use reasoning prompts.
+`,
     render: () => (
       <div className="min-h-full flex flex-col justify-center items-center py-8">
         <HandsOnBadge />
@@ -666,9 +677,12 @@ Final Answer: 5 apples.`}
   // Slide 11: Structured Output
   {
     id: "json",
-    notes: `The Nightmare: Parsing regex from natural language is bad. We want JSON.parse() to work 100% of the time.
-    Technique: Define the output format in the SYSTEM prompt. "You are a JSON extractor. Output ONLY raw JSON."
-    Live Demo: Paste a bio, get JSON.`,
+    notes: `Most production failures happen at output parsing.
+Natural language is not a data format.
+If JSON.parse can fail, the prompt is incomplete.
+The fix is strict system-level instructions.
+Define the schema, forbid markdown, and require raw JSON output.
+`,
     render: () => (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-0 min-h-full -m-4 sm:-m-12">
         <div className="p-8 sm:p-12 flex flex-col justify-center">
@@ -702,7 +716,7 @@ Final Answer: 5 apples.`}
               label="Live JSON Extractor"
               buttonLabel="Extract JSON ✨"
               defaultInput="Hi, I am Rajesh, a 29 year old Senior Developer from Chandigarh. I love Cricket and Coding."
-              systemPrompt={`You are a strict Data Extraction API. 
+              defaultSystem={`You are a strict Data Extraction API. 
 Input: Unstructured Text.
 Output: Valid JSON matching this TypeScript Interface:
 interface Profile {
@@ -723,10 +737,12 @@ Constraint: Output ONLY raw JSON. No markdown blocks.`}
   // Slide 12: System Prompts (Interactive)
   {
     id: "system",
-    notes: `Demo Time: "Role Playground".
-        Show the difference between changing the User Prompt vs changing the System Prompt.
-        Change System to "You are a Pirate" -> The same user question gets a totally different answer.
-        This proves the power of System Prompts for controlling tone and behavior.`,
+    notes: `This slide demonstrates the power of system prompts.
+Changing the system prompt changes behavior without changing user input.
+System prompts persist and define rules, tone, and constraints.
+User prompts are just data.
+This is the primary control mechanism in production systems.
+`,
     render: () => (
       <div className="min-h-full flex flex-col justify-center py-8">
         <Title>System vs. User Prompts</Title>
@@ -770,9 +786,12 @@ Constraint: Output ONLY raw JSON. No markdown blocks.`}
   // Slide 13: Hands On 2
   {
     id: "handson2",
-    notes: `Activity (15 Mins):
-        Challenge: Ask students to throw difficult inputs at their prompt. What happens if the user says "I hate Java"? Does it still extract "Java"?
-        Learning: How to write constraints like "Only extract technologies explicitly mentioned as skills."`,
+    notes: `This exercise focuses on constraint design.
+Messy input exposes weak prompts.
+Good prompts explicitly define what to extract and what to ignore.
+Missing fields should be null, not guessed.
+The goal is predictable structured output.
+`,
     render: () => (
       <div className="min-h-full flex flex-col justify-center items-center py-8">
         <HandsOnBadge />
@@ -826,8 +845,12 @@ Constraint: Output ONLY raw JSON. No markdown blocks.`}
   // Slide 14: RAG
   {
     id: "rag",
-    notes: `Real World App: You want a chatbot for Chandigarh University admissions. ChatGPT doesn't know the 2024 fee structure.
-        Solution: You don't train a new model. You fetch the PDF text of the fee structure, paste it into the prompt, and say "Answer based on this text". That is RAG.`,
+    notes: `LLMs do not know your private or recent data.
+RAG solves this by injecting relevant context at runtime.
+Retrieve data, inject it into the prompt, then generate.
+The model should answer using only the provided context.
+RAG reduces hallucinations and keeps answers up to date.
+`,
     render: () => (
       <div className="min-h-full flex flex-col justify-center py-8">
         <Title>RAG: Retrieval Augmented Generation</Title>
@@ -879,9 +902,12 @@ Constraint: Output ONLY raw JSON. No markdown blocks.`}
   // Slide 15: Real-World Pattern 1 (SQL)
   {
     id: "realworld1",
-    notes: `Pattern 1: Text-to-SQL.
-        Key Technique: Context Injection. We instruct Gemini to act as a SQL expert and provide the schema.
-        Live Demo: Try asking "Show me all users who signed up in 2023."`,
+    notes: `This pattern converts natural language into SQL.
+The schema must be provided to avoid guessing.
+The model acts as a constrained SQL generator.
+Output should be SQL only, without explanations.
+This pattern is common in analytics and dashboards.
+`,
     render: () => (
       <div className="min-h-full flex flex-col justify-center py-8">
         <div className="flex items-center gap-4 mb-8">
@@ -911,7 +937,7 @@ Constraint: Output ONLY raw JSON. No markdown blocks.`}
               label="Live SQL Generator"
               buttonLabel="Generate SQL ✨"
               defaultInput="Show me the top 5 spenders from 2024 who have completed orders."
-              systemPrompt={`You are a SQL expert. 
+              defaultSystem={`You are a SQL expert. 
 Schema: 
 Users(id, name, email, signup_date)
 Orders(id, user_id, amount, status)
@@ -927,9 +953,12 @@ Constraint: Output ONLY the SQL query. Do not explain. Do not use markdown.`}
   // Slide 16: Real-World Pattern 2 (Tests)
   {
     id: "realworld2",
-    notes: `Pattern 2: Auto-Unit Tests.
-        High value, low effort. Writing tests is boring; let AI do it.
-        Live Demo: Change the python code in the input and see Gemini write new tests.`,
+    notes: `This pattern automates unit test generation.
+The model acts as a QA engineer.
+Framework and constraints must be explicit.
+AI handles boilerplate and edge cases well.
+Developers still review and own the tests.
+`,
     render: () => (
       <div className="min-h-full flex flex-col justify-center py-8">
         <div className="flex items-center gap-4 mb-8">
@@ -962,7 +991,7 @@ Constraint: Output ONLY the SQL query. Do not explain. Do not use markdown.`}
     if b == 0:
         raise ValueError("Cannot divide by zero")
     return a / b`}
-              systemPrompt={`You are a QA Engineer. 
+              defaultSystem={`You are a QA Engineer. 
 Write a complete pytest suite for the provided Python code. 
 Include standard cases and edge cases. 
 Output ONLY valid Python code. No markdown.`}
@@ -976,10 +1005,12 @@ Output ONLY valid Python code. No markdown.`}
   // Slide 17: Real-World Pattern 3 (Git)
   {
     id: "realworld3",
-    notes: `Pattern 3: Semantic Git Commits.
-        How many of you write "wip" or "fix" as commit messages?
-        Pipe 'git diff' to an LLM and ask for a Conventional Commit message.
-        Key value: Searchable history without effort.`,
+    notes: `This pattern generates semantic commit messages.
+Git diffs provide all required context.
+The model summarizes changes into a standard format.
+This improves readability and history search.
+It works well in CLI and CI pipelines.
+`,
     render: () => (
       <div className="min-h-full flex flex-col justify-center py-8">
         <div className="flex items-center gap-4 mb-8">
@@ -1021,7 +1052,7 @@ index 83a02..291b 100644
 +  if (!user.isValid) throw Error("Invalid");
 +  return createToken(user);
  }`}
-              systemPrompt={`You are a DevOps expert. 
+              defaultSystem={`You are a DevOps expert. 
 Review the provided git diff. 
 Output a Semantic Commit Message (Conventional Commits). 
 Format: <type>(<scope>): <subject>
@@ -1039,10 +1070,12 @@ No explanation.`}
   // Slide 18: Prompt Iteration Intro (Research Content)
   {
     id: "iteration_intro",
-    notes: `Case Study: Research Content Generation.
-        We are going to walk through the *evolution* of a prompt.
-        Goal: Generate a high-quality research summary on "AI in Healthcare".
-        Moving from Level 1 (Lazy) to Level 3 (Expert).`,
+    notes: `This section shows how prompts evolve.
+A basic prompt produces generic output.
+Adding role, context, and constraints improves quality.
+Iteration is expected, not failure.
+Good prompts are refined over time.
+`,
     render: () => (
       <div className="min-h-full flex flex-col justify-center items-center py-8 text-center">
         <Pill>LIVE WORKSHOP: CASE STUDY</Pill>
@@ -1083,9 +1116,12 @@ No explanation.`}
   // Slide 19: Iteration Steps
   {
     id: "iteration_steps",
-    notes: `Live Demo: "Level 3: The Engineer". 
-        Instead of just showing the static prompt, let's use Gemini to auto-optimize a lazy prompt.
-        Show the audience how an LLM can actually write the prompt for them (Meta-Prompting).`,
+    notes: `This slide demonstrates meta-prompting.
+The model is used to improve the prompt itself.
+Level 1 is vague and unreliable.
+Level 3 is structured and constrained.
+This approach scales prompt quality quickly.
+`,
     render: () => (
       <div className="min-h-full flex flex-col justify-center py-8">
         <Title>Step-by-Step Optimization</Title>
@@ -1133,7 +1169,7 @@ Tone: Professional."`}
               label="Level 3: Auto-Optimizer"
               buttonLabel="Optimize Prompt ✨"
               defaultInput="Write about AI in Healthcare."
-              systemPrompt={`You are an expert Prompt Engineer. 
+              defaultSystem={`You are an expert Prompt Engineer. 
 Rewrite the user's basic prompt into a 'Level 3' expert prompt.
 Include:
 1. Persona (e.g., Senior Researcher)
@@ -1152,9 +1188,12 @@ Output ONLY the optimized prompt.`}
   // Slide 20: Agents
   {
     id: "agents",
-    notes: `ReAct Paper: Reason + Act.
-        Live Demo: Users can type a query, and we prompt the model to "simulate" the ReAct loop.
-        This demonstrates how Agents effectively talk to themselves to solve problems.`,
+    notes: `Agents are loops, not single prompts.
+They reason, act, observe, and repeat.
+Tools are external APIs or functions.
+This demo simulates the loop for clarity.
+Real agents require logging and guardrails.
+`,
     render: () => (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-0 min-h-full -m-4 sm:-m-12">
         <div className="p-8 sm:p-12 flex flex-col justify-center">
@@ -1169,7 +1208,7 @@ Output ONLY the optimized prompt.`}
               label="Live Agent Simulator"
               buttonLabel="Run Agent Loop ✨"
               defaultInput="What is the weather in Delhi multiplied by 3?"
-              systemPrompt={`You are an autonomous agent using the ReAct framework. 
+              defaultSystem={`You are an autonomous agent using the ReAct framework. 
 You have access to: [WeatherAPI, Calculator].
 When asked a question, think step by step. 
 Output your reasoning in this format:
@@ -1186,7 +1225,7 @@ Simulate the tool outputs for this demo.`}
         </div>
         <div className="bg-slate-900 min-h-[300px] md:h-full relative overflow-hidden order-first md:order-last">
           <img
-            src="[https://images.unsplash.com/photo-1531746790731-6c087fecd65a?q=80&w=1000&auto=format&fit=crop](https://images.unsplash.com/photo-1531746790731-6c087fecd65a?q=80&w=1000&auto=format&fit=crop)"
+            src="https://images.unsplash.com/photo-1531746790731-6c087fecd65a?q=80&w=1000&auto=format&fit=crop"
             alt="AI Agent Robot"
             className="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-overlay"
           />
@@ -1198,9 +1237,12 @@ Simulate the tool outputs for this demo.`}
   // Slide 21: Security
   {
     id: "security",
-    notes: `Warning: Mention the "DAN" (Do Anything Now) jailbreaks.
-        Advice: Never put passwords or secrets in the System Prompt. Users can almost always extract them.
-        Delimiters: This is the SQL Injection equivalent for LLMs. Always mark where user data begins and ends.`,
+    notes: `Prompt injection is the primary security risk.
+Users can attempt to override instructions.
+Never store secrets in prompts.
+Use delimiters to isolate user input.
+Treat this like SQL injection for LLMs.
+`,
     render: () => (
       <div className="min-h-full flex flex-col justify-center py-8">
         <Title>Security: Prompt Injection</Title>
@@ -1243,9 +1285,12 @@ Simulate the tool outputs for this demo.`}
   // Slide 22: Hands On 3
   {
     id: "handson3",
-    notes: `Final Activity (15 Mins):
-        Goal: Test control over the output style.
-        Review: Have students share their prompts. Did anyone's model slip up and give the answer? Why? (Temperature? Weak System Prompt?).`,
+    notes: `This exercise tests control over behavior.
+The agent must guide without answering directly.
+Weak system prompts fail quickly.
+Strong constraints produce consistent behavior.
+This mirrors real tutoring and support agents.
+`,
     render: () => (
       <div className="min-h-full flex flex-col justify-center items-center py-8">
         <HandsOnBadge />
@@ -1284,13 +1329,42 @@ Simulate the tool outputs for this demo.`}
     ),
   },
 
-  // Slide 23: Q&A
+  // Slide 23: Fix My Prompt (Cheatsheet)
+  {
+    id: "cheatsheet",
+    notes: `This interactive slide helps participants debug and improve their prompts on the spot.
+It should be the final teaching slide, right before Q&A.
+`,
+    render: () => (
+      <div className="min-h-full flex flex-col justify-center items-center py-8">
+        <Title className="mb-8">Fix My Prompt: Live Debugging</Title>
+        <div className="w-full max-w-2xl">
+          <LivePlayground
+            label="Interactive Prompt Fixer"
+            buttonLabel="Improve My Prompt ✨"
+            defaultInput="Summarize this article."
+            defaultSystem={`You are a world-class Prompt Engineer.
+Given the user's prompt, rewrite it to be more clear, structured, and reliable for an LLM.
+Add constraints, specify output format, and clarify intent.
+Output ONLY the improved prompt.`}
+          />
+        </div>
+        <div className="mt-8 text-slate-400 text-center text-lg max-w-xl">
+          Paste your own prompt above and see how it can be improved!
+        </div>
+      </div>
+    ),
+  },
+
+  // Slide 24: Q&A
   {
     id: "qa",
-    notes: `Closing:
-        Resources: Mention OpenAI Cookbook, LangChain docs, and Promptfoo for testing.
-        Call to Action: Go home and rewrite your basic "chat" apps to use structured JSON and System prompts.
-        Open Floor: Take questions.`,
+    notes: `Reinforce the core idea: prompt engineering is engineering.
+Encourage structured output and system prompts.
+Share learning resources and tools.
+Invite questions and discussion.
+End with practical next steps.
+`,
     render: () => (
       <div className="flex flex-col items-center justify-center h-full text-center py-8">
         <h1 className="text-5xl sm:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-indigo-500 mb-8">
