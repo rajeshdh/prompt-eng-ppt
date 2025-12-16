@@ -1375,12 +1375,6 @@ End with practical next steps.
           <br />
           <span className="text-white font-bold">Start building.</span>
         </p>
-        <div className="bg-slate-800 px-8 py-4 rounded-full border border-slate-700 flex items-center gap-4">
-          <div className="text-right">
-            <div className="text-white font-bold">Rajesh Dhiman</div>
-            <div className="text-sky-400 text-sm">Eunix Tech</div>
-          </div>
-        </div>
       </div>
     ),
   },
