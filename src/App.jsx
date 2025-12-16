@@ -27,6 +27,7 @@ import {
   Zap,
   Cpu,
   QrCode,
+  Github,
 } from "lucide-react";
 
 // --- LLM API Helper ---
@@ -138,6 +139,7 @@ const LivePlayground = ({
   defaultTemperature = 0.7,
   defaultMaxTokens = 300,
   defaultStopSequences = [],
+  hideParams = false,
 }) => {
   const [input, setInput] = useState(defaultInput);
   const [system, setSystem] = useState(defaultSystem);
@@ -219,57 +221,60 @@ const LivePlayground = ({
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <div className="flex flex-col gap-1">
-          <label className="text-xs text-gray-700 font-mono font-bold">
-            Temperature
-          </label>
-          <div className="flex items-center gap-2">
+      {/* Parameter Controls (Conditional) */}
+      {!hideParams && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-gray-700 font-mono font-bold">
+              Temperature
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.1"
+                value={temperature}
+                onChange={(e) => setTemperature(Number(e.target.value))}
+                className="flex-1 accent-sky-500"
+              />
+              <span className="text-xs text-proj-text w-10 text-right font-mono">
+                {temperature.toFixed(1)}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-gray-700 font-mono font-bold">
+              Max Tokens
+            </label>
             <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.1"
-              value={temperature}
-              onChange={(e) => setTemperature(Number(e.target.value))}
-              className="flex-1 accent-sky-500"
+              type="number"
+              min="1"
+              max="2048"
+              value={maxTokens}
+              onChange={(e) =>
+                setMaxTokens(Math.max(1, Number(e.target.value) || 0))
+              }
+              className="bg-proj-code-bg text-proj-info p-2 rounded-lg border border-proj-border font-mono text-sm focus:ring-2 focus:ring-proj-accent outline-none"
+              placeholder="e.g., 150"
             />
-            <span className="text-xs text-proj-text w-10 text-right font-mono">
-              {temperature.toFixed(1)}
-            </span>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-gray-700 font-mono font-bold">
+              Stop Sequences (comma-separated)
+            </label>
+            <input
+              type="text"
+              value={stopList}
+              onChange={(e) => setStopList(e.target.value)}
+              className="bg-proj-code-bg text-proj-info p-2 rounded-lg border border-proj-border font-mono text-sm focus:ring-2 focus:ring-proj-accent outline-none"
+              placeholder={`e.g., User:, '''`}
+            />
           </div>
         </div>
-
-        <div className="flex flex-col gap-1">
-          <label className="text-xs text-gray-700 font-mono font-bold">
-            Max Tokens
-          </label>
-          <input
-            type="number"
-            min="1"
-            max="2048"
-            value={maxTokens}
-            onChange={(e) =>
-              setMaxTokens(Math.max(1, Number(e.target.value) || 0))
-            }
-            className="bg-proj-code-bg text-proj-info p-2 rounded-lg border border-proj-border font-mono text-sm focus:ring-2 focus:ring-proj-accent outline-none"
-            placeholder="e.g., 150"
-          />
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <label className="text-xs text-gray-700 font-mono font-bold">
-            Stop Sequences (comma-separated)
-          </label>
-          <input
-            type="text"
-            value={stopList}
-            onChange={(e) => setStopList(e.target.value)}
-            className="bg-proj-code-bg text-proj-info p-2 rounded-lg border border-proj-border font-mono text-sm focus:ring-2 focus:ring-proj-accent outline-none"
-            placeholder={`e.g., User:, '''`}
-          />
-        </div>
-      </div>
+      )}
 
       <button
         onClick={handleGenerate}
@@ -359,9 +364,9 @@ const slides = [
     Introduction: Welcome. No poems today. We're doing Engineering. We're not users; we're developers.
     Goal: Walk away knowing how to get clean JSON, stop hallucinations, and build an agent.`,
     render: () => (
-      <div className="flex flex-col items-center justify-center min-h-full text-center py-8">
+      <div className="flex flex-col items-center min-h-full text-center py-6">
         <Pill>CHANDIGARH UNIVERSITY WORKSHOP</Pill>
-        <h1 className="text-5xl sm:text-7xl font-black text-transparent bg-clip-text bg-bg-gradient-to-br from-sky-400 to-proj-info mb-6 leading-tight">
+        <h1 className="text-5xl sm:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-br from-sky-400 to-proj-info mb-6 leading-tight">
           Prompt Engineering
           <br />
           for Developers
@@ -369,7 +374,7 @@ const slides = [
         <p className="text-xl sm:text-2xl text-gray-700 max-w-3xl font-light">
           Learn how to actually build stuff with AI that works.
         </p>
-        <div className="mt-10 bg-proj-surface/60 border border-proj-accent/30 rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row items-center gap-6 shadow-xl">
+        <div className="mt-6 bg-proj-surface/60 border border-proj-accent/30 rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row items-center gap-6 shadow-xl">
           <div className="bg-white p-3 rounded-xl shadow-inner">
             <img
               src={DECK_QR_URL}
@@ -404,9 +409,9 @@ const slides = [
     80-100 mins: Agents, RAG, Security.
     100-120 mins: Final Hands-on & Q&A.`,
     render: () => (
-      <div className="min-h-full flex flex-col justify-center py-8">
+      <div className="min-h-full flex flex-col py-6">
         <Title>Workshop Agenda</Title>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <ul className="list-none">
             <ListItem title="Part 1: The Basics">
               How AI works, Temperature, Tokens, Stop words.
@@ -441,7 +446,7 @@ const slides = [
     Analogy: Think of an LLM as a brilliant but random improv actor.
     Key Takeaway: Prompt Engineering is basically writing "Unit Tests" and "Constraints" for natural language functions.`,
     render: () => (
-      <div className="min-h-full flex flex-col justify-center py-8">
+      <div className="min-h-full flex flex-col py-6">
         <Title>Why AI is Different</Title>
         <h3 className="text-2xl text-proj-text mb-6 font-bold">
           Normal Code vs AI Code
@@ -476,9 +481,9 @@ output: "Four", "4", "It's 4."`}
     Assistant: The answer.
     Developers must understand this array structure to build apps.`,
     render: () => (
-      <div className="min-h-full flex flex-col justify-center py-8">
+      <div className="min-h-full flex flex-col py-6">
         <Title>The Message-Based API Structure</Title>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
           <div>
             <p className="text-lg text-gray-700 mb-6">
               When you build with AI (OpenAI, Gemini), you don't just send text.
@@ -616,7 +621,7 @@ Max tokens is your budget limit - it stops the AI from writing forever.
 Important: Input + Output tokens both count toward limits.
 Set max_tokens based on your needs: summaries = 100, essays = 1000.`,
     render: () => (
-      <div className="min-h-full flex flex-col justify-center py-8">
+      <div className="min-h-full flex flex-col py-6">
         <div className="flex items-center gap-4 mb-8">
           <div className="bg-proj-accent p-3 rounded-lg">
             <Ruler className="text-proj-text" size={32} />
@@ -624,7 +629,7 @@ Set max_tokens based on your needs: summaries = 100, essays = 1000.`,
           <Title className="mb-0">Max Tokens: The Budget Limit</Title>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <h3 className="text-2xl font-bold text-proj-text mb-6">
               What's a Token?
@@ -800,7 +805,7 @@ To get to the other side!
     Students should screenshot or remember these combos.
     Next slide will let them experiment with these settings hands-on.`,
     render: () => (
-      <div className="min-h-full flex flex-col justify-center py-8">
+      <div className="min-h-full flex flex-col py-6">
         <Title>Parameter Recipe Book</Title>
         <p className="text-gray-700 text-lg mb-12 text-center max-w-3xl mx-auto">
           How <strong className="text-proj-warning">Temperature</strong>,{" "}
@@ -904,7 +909,7 @@ To get to the other side!
           </div>
         </div>
 
-        <div className="bg-yellow-500/10 border border-yellow-500/50 p-6 rounded-lg mt-10 max-w-4xl mx-auto">
+        <div className="bg-yellow-500/10 border border-yellow-500/50 p-6 rounded-lg mt-6 max-w-4xl mx-auto">
           <p className="text-proj-warning text-lg text-center">
             💡 <strong>Key Insight:</strong> Parameters don't work in
             isolation—they interact. The right combination depends on your use
@@ -922,7 +927,7 @@ To get to the other side!
     Encourage them to modify the system prompt to test different temperature/token/stop settings.
     This is the "aha moment" where theory becomes practical.`,
     render: () => (
-      <div className="min-h-full flex flex-col gap-8 py-8">
+      <div className="min-h-full flex flex-col gap-6 py-6">
         <Title>The Parameter Lab 🧪</Title>
         <p className="text-gray-700 text-lg mb-8 text-center max-w-3xl mx-auto">
           Now try those combinations yourself! Modify the system prompt to
@@ -995,13 +1000,13 @@ Write a compelling but concise product description.`}
     Structured Output: Get clean JSON back
     These three techniques solve 80% of real-world problems.`,
     render: () => (
-      <div className="min-h-full flex flex-col justify-center py-8">
+      <div className="min-h-full flex flex-col py-6">
         <Title>Part 2: Main Techniques</Title>
         <p className="text-xl text-gray-700 mb-12 text-center max-w-3xl mx-auto">
           Now that you know the basics, here are the 3 most important techniques
           you'll use every day:
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-bg-gradient-to-br from-indigo-900/50 to-slate-800/50 p-8 rounded-xl border border-proj-accent/30">
             <div className="text-4xl mb-4">📝</div>
             <h3 className="text-2xl font-bold text-proj-text mb-3">Few-Shot</h3>
@@ -1042,7 +1047,7 @@ Show progression from zero-shot to few-shot to demonstrate improvement.
 Few-shot works especially well for classification and structured output.
 `,
     render: () => (
-      <div className="min-h-full flex flex-col justify-center py-8">
+      <div className="min-h-full flex flex-col py-6">
         <Title>Technique 1: Few-Shot Prompting</Title>
         <h3 className="text-2xl font-bold text-proj-text mb-6 text-center">
           Don't Tell. Show Examples.
@@ -1214,7 +1219,7 @@ This demonstrates when and why to use reasoning prompts.
       <div className="min-h-full flex flex-col justify-center items-center py-8">
         <HandsOnBadge />
         <Title className="mb-12">The Social Media Counter</Title>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
           <div className="bg-gray-300/30 p-8 rounded-xl border border-proj-border space-y-4">
             <h3 className="text-2xl font-bold text-proj-text">
               Do this on your laptop
@@ -1330,9 +1335,9 @@ User prompts are just data.
 This is the primary control mechanism in production systems.
 `,
     render: () => (
-      <div className="min-h-full flex flex-col justify-center py-8">
+      <div className="min-h-full flex flex-col py-6">
         <Title>System vs. User Prompts</Title>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 h-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
           <div className="flex flex-col justify-center">
             <h3 className="text-2xl font-bold text-proj-text mb-6">
               The "God" Prompt
@@ -1383,7 +1388,7 @@ The goal is predictable structured output.
       <div className="min-h-full flex flex-col justify-center items-center py-8">
         <HandsOnBadge />
         <Title className="mb-12">The Resume Parser</Title>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
           <div className="bg-gray-300/30 p-8 rounded-xl border border-proj-border space-y-4">
             <h3 className="text-2xl font-bold text-proj-text">
               Do this on your laptop
@@ -1454,7 +1459,7 @@ The model should answer using only the provided context.
 RAG reduces hallucinations and keeps answers up to date.
 `,
     render: () => (
-      <div className="min-h-full flex flex-col justify-center py-8">
+      <div className="min-h-full flex flex-col py-6">
         <Title>RAG: Retrieval Augmented Generation</Title>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
           {[
@@ -1493,7 +1498,7 @@ RAG reduces hallucinations and keeps answers up to date.
             </div>
           ))}
         </div>
-        <p className="text-center mt-12 text-gray-700 text-lg">
+        <p className="text-center mt-6 text-gray-700 text-lg">
           Fixes <strong className="text-proj-error">Hallucinations</strong> and old
           data.
         </p>
@@ -1510,7 +1515,7 @@ RAG reduces hallucinations and keeps answers up to date.
     The key is injecting relevant documents/data into the system prompt.
     This is the most important pattern for building real AI apps.`,
     render: () => (
-      <div className="min-h-full flex flex-col justify-center py-8">
+      <div className="min-h-full flex flex-col py-6">
         <Title>RAG in Action: Before & After</Title>
         <p className="text-gray-700 text-lg mb-8 text-center max-w-3xl mx-auto">
           See how injecting the right context transforms AI from{" "}
@@ -1518,7 +1523,7 @@ RAG reduces hallucinations and keeps answers up to date.
           <strong className="text-proj-success">knowing</strong>.
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* WITHOUT RAG */}
           <div className="bg-red-900/20 border border-proj-error/30 rounded-xl p-6">
             <div className="flex items-center gap-3 mb-4">
@@ -1621,7 +1626,7 @@ TEACHING NOTE: Show the BAD example first to build intuition for why constraints
 Without explicit instructions, AI wraps SQL in markdown and adds explanations.
 `,
     render: () => (
-      <div className="min-h-full flex flex-col gap-8 py-8">
+      <div className="min-h-full flex flex-col gap-6 py-6">
         <div className="flex items-center gap-4">
           <div className="bg-proj-accent p-3 rounded-lg">
             <Database className="text-proj-text" size={32} />
@@ -1749,7 +1754,7 @@ LIMIT 5`}
     id: "realworld1-lab",
     notes: `Hands-on practice for text-to-SQL. Keep schema visible and insist on raw SQL output.`,
     render: () => (
-      <div className="min-h-full flex flex-col gap-8 py-8">
+      <div className="min-h-full flex flex-col gap-6 py-6">
         <div className="flex items-center gap-4">
           <div className="bg-proj-accent p-3 rounded-lg">
             <Database className="text-proj-text" size={32} />
@@ -1807,7 +1812,7 @@ TEACHING NOTE: Show the BAD example first to demonstrate why framework constrain
 Without framework details, AI generates inconsistent or unparseable test code.
 `,
     render: () => (
-      <div className="min-h-full flex flex-col gap-8 py-8">
+      <div className="min-h-full flex flex-col gap-6 py-6">
         <div className="flex items-center gap-4">
           <div className="bg-green-100 p-3 rounded-lg">
             <FileCode className="text-proj-text" size={32} />
@@ -1946,7 +1951,7 @@ def test_divide_zero():
     id: "realworld2-lab",
     notes: `Hands-on practice for test generation. Specify framework, edge cases, and "code only."`,
     render: () => (
-      <div className="min-h-full flex flex-col gap-8 py-8">
+      <div className="min-h-full flex flex-col gap-6 py-6">
         <div className="flex items-center gap-4">
           <div className="bg-green-100 p-3 rounded-lg">
             <FileCode className="text-proj-text" size={32} />
@@ -2004,7 +2009,7 @@ TEACHING NOTE: Show the BAD example first to demonstrate why format constraints 
 Without format specification, AI generates casual or verbose commit messages.
 `,
     render: () => (
-      <div className="min-h-full flex flex-col gap-8 py-8">
+      <div className="min-h-full flex flex-col gap-6 py-6">
         <div className="flex items-center gap-4">
           <div className="bg-purple-500 p-3 rounded-lg">
             <GitMerge className="text-proj-text" size={32} />
@@ -2127,7 +2132,7 @@ Prevent invalid users from proceeding`}
     id: "realworld3-lab",
     notes: `Hands-on practice for semantic commit messages. Lock in Conventional Commit format and keep it terse.`,
     render: () => (
-      <div className="min-h-full flex flex-col gap-8 py-8">
+      <div className="min-h-full flex flex-col gap-6 py-6">
         <div className="flex items-center gap-4">
           <div className="bg-purple-500 p-3 rounded-lg">
             <GitMerge className="text-proj-text" size={32} />
@@ -2199,7 +2204,7 @@ Good prompts are refined over time.
         <p className="text-2xl text-gray-700 mb-12 max-w-2xl">
           Moving from "Lazy User" to "Prompt Engineer" for complex tasks.
         </p>
-        <div className="flex justify-center gap-12">
+        <div className="flex justify-center gap-6">
           <div className="flex flex-col items-center">
             <div className="w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center mb-4 text-gray-700">
               <FileText size={32} />
@@ -2239,7 +2244,7 @@ Level 3 is structured and constrained.
 This approach scales prompt quality quickly.
 `,
     render: () => (
-      <div className="min-h-full flex flex-col gap-8 py-8">
+      <div className="min-h-full flex flex-col gap-6 py-6">
         <Title>Step-by-Step Optimization</Title>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Level 1 */}
@@ -2293,7 +2298,7 @@ Tone: Professional."`}
     id: "iteration_steps_lab",
     notes: `Hands-on prompt optimizer. Show how to rewrite vague asks into structured prompts with persona, audience, constraints, and format.`,
     render: () => (
-      <div className="min-h-full flex flex-col gap-8 py-8">
+      <div className="min-h-full flex flex-col gap-6 py-6">
         <div className="flex items-center gap-4">
           <div className="bg-proj-accent p-3 rounded-lg">
             <Beaker className="text-proj-text" size={28} />
@@ -2390,7 +2395,7 @@ Final Answer: concise reply`}
     id: "agents_lab",
     notes: `Hands-on ReAct loop simulator. Show deliberate reasoning, tool choice, and final answer.`,
     render: () => (
-      <div className="min-h-full flex flex-col gap-8 py-8">
+      <div className="min-h-full flex flex-col gap-6 py-6">
         <div className="flex items-center gap-4">
           <div className="bg-purple-500 p-3 rounded-lg">
             <Cpu className="text-proj-text" size={28} />
@@ -2456,9 +2461,9 @@ Use delimiters to isolate user input.
 Treat this like SQL injection for LLMs.
 `,
     render: () => (
-      <div className="min-h-full flex flex-col justify-center py-8">
+      <div className="min-h-full flex flex-col py-6">
         <Title>Security: Prompt Injection</Title>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
           <div>
             <div className="bg-red-100/10 border border-proj-error/50 p-6 rounded-xl mb-8">
               <h3 className="text-xl font-bold text-proj-error mb-2">
@@ -2499,7 +2504,7 @@ Treat this like SQL injection for LLMs.
     id: "security-lab",
     notes: `Hands-on security exercise: first show a WEAK prompt that's easy to hack, then show a STRONG prompt with defenses. Students try common injections on both.`,
     render: () => (
-      <div className="min-h-full flex flex-col gap-8 py-8">
+      <div className="min-h-full flex flex-col gap-6 py-6">
         <div className="flex flex-col items-center text-center gap-2">
           <Title className="mb-1">Security Challenge: Can You Hack It?</Title>
           <p className="text-gray-700 text-lg max-w-3xl">
@@ -2659,7 +2664,7 @@ User input follows below:
     id: "security-lab-defense",
     notes: `Follow-up slide: summarize key defense techniques and give a short attack checklist for students to try.`,
     render: () => (
-      <div className="min-h-full flex flex-col gap-8 py-8">
+      <div className="min-h-full flex flex-col gap-6 py-6">
         <Title>Defense Playbook</Title>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-yellow-900/20 border border-yellow-500/40 rounded-xl p-6 space-y-3">
@@ -2710,7 +2715,7 @@ This mirrors real tutoring and support agents.
       <div className="min-h-full flex flex-col justify-center items-center py-8">
         <HandsOnBadge />
         <Title className="mb-12">Final Challenge: The Teacher Agent</Title>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
           <div className="bg-gray-300/30 p-8 rounded-xl border border-proj-border space-y-4">
             <h3 className="text-2xl font-bold text-proj-text">
               Do this on your laptop
@@ -2768,6 +2773,7 @@ It should be the final teaching slide, right before Q&A.
 Given the user's prompt, rewrite it to be more clear, structured, and reliable for an LLM.
 Add constraints, specify output format, and clarify intent.
 Output ONLY the improved prompt.`}
+            hideParams={true}
           />
         </div>
         <div className="text-gray-700 text-center text-lg max-w-xl">
@@ -2797,7 +2803,7 @@ End with practical next steps.
           <span className="text-proj-text font-bold">Start building.</span>
         </p>
 
-        <div className="mt-10 flex flex-col items-center gap-6">
+        <div className="mt-6 flex flex-col items-center gap-6">
           <div className="bg-gray-100/70 border border-proj-border rounded-2xl p-6 flex flex-col sm:flex-row items-center gap-6">
             <img
               src="https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=https%3A%2F%2Fwww.linkedin.com%2Fin%2Fdhimanrajesh%2F"
@@ -2913,17 +2919,30 @@ const App = () => {
           </button>
         </div>
 
-        <button
-          onClick={() => setShowNotes(!showNotes)}
-          className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold transition-colors border-2 border-proj-border ${
-            showNotes
-              ? "bg-proj-accent text-white"
-              : "bg-gray-100 text-proj-text hover:bg-gray-300"
-          }`}
-        >
-          <Mic size={18} />
-          <span className="hidden sm:inline">Speaker Notes</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <a
+            href="https://github.com/rajeshdh/prompt-eng-ppt"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-4 py-2 rounded-full font-bold transition-colors border-2 border-proj-border bg-gray-100 text-proj-text hover:bg-gray-300"
+            title="View on GitHub"
+          >
+            <Github size={18} />
+            <span className="hidden sm:inline">GitHub</span>
+          </a>
+
+          <button
+            onClick={() => setShowNotes(!showNotes)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold transition-colors border-2 border-proj-border ${
+              showNotes
+                ? "bg-proj-accent text-white"
+                : "bg-gray-100 text-proj-text hover:bg-gray-300"
+            }`}
+          >
+            <Mic size={18} />
+            <span className="hidden sm:inline">Speaker Notes</span>
+          </button>
+        </div>
       </div>
 
       {/* Speaker Notes Panel */}
