@@ -31,6 +31,9 @@ import {
 
 // --- Gemini API Helper ---
 
+const MODEL_ID =
+  import.meta.env.VITE_GEMINI_MODEL || "gemini-1.5-flash-002"; // stable model to avoid preview limits
+
 const callGemini = async ({
   userPrompt,
   systemInstruction,
@@ -41,7 +44,7 @@ const callGemini = async ({
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
   try {
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_ID}:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -57,7 +60,11 @@ const callGemini = async ({
       }
     );
     const data = await response.json();
-    if (data.error) throw new Error(data.error.message);
+    if (data.error) {
+      const reason =
+        data.error.status || data.error.code || "GENERATION_CONFIG_ERROR";
+      throw new Error(`(${reason}) ${data.error.message}`);
+    }
     return (
       data.candidates?.[0]?.content?.parts?.[0]?.text ||
       "No response generated."
@@ -106,11 +113,15 @@ const LivePlayground = ({
       .split(",")
       .map((s) => s.trim())
       .filter(Boolean);
+    const safeMaxTokens = Math.max(
+      1,
+      Math.min(2048, Math.floor(maxTokens || defaultMaxTokens))
+    );
     const result = await callGemini({
       userPrompt: input,
       systemInstruction: system,
       temperature,
-      maxTokens,
+      maxTokens: safeMaxTokens,
       stopSequences: cleanedStops,
     });
     setOutput(result);
@@ -198,7 +209,9 @@ const LivePlayground = ({
             min="1"
             max="2048"
             value={maxTokens}
-            onChange={(e) => setMaxTokens(Number(e.target.value) || 0)}
+            onChange={(e) =>
+              setMaxTokens(Math.max(1, Number(e.target.value) || 0))
+            }
             className="bg-proj-code-bg text-proj-info p-2 rounded-lg border border-proj-border font-mono text-sm focus:ring-2 focus:ring-proj-accent outline-none"
             placeholder="e.g., 150"
           />
@@ -1010,14 +1023,15 @@ Few-shot works especially well for classification and structured output.
               </div>
             </div>
             <CodeBlock label="Unreliable">
-              {`Prompt: "Extract sentiment"
-Input: "This is bad"
+              {`Prompt: "Categorize this customer review"
+Input: "The food arrived cold but the
+delivery guy was really nice"
 
 Output variations:
-"Negative"
-"I think it's negative"
-"The sentiment is bad"
-"Sentiment: Negative"`}
+"Positive - nice delivery"
+"Mixed: Food issue but good service"
+"Negative (cold food)"
+"Category: Service > Delivery > Positive"`}
             </CodeBlock>
             <p className="text-xs text-proj-error mt-3">⚠️ Inconsistent format!</p>
           </div>
@@ -1033,14 +1047,15 @@ Output variations:
             </div>
             <CodeBlock label="Better">
               {`Example:
-Input: "Great!" → Positive
+"Pizza was amazing!" → Food:Positive
 
-New Input: "This is bad"
+New Input: "The food arrived cold but
+the delivery guy was really nice"
 
 Output:
-Negative
+Food:Negative
 
-✓ Format is better`}
+✓ Better but misses delivery info`}
             </CodeBlock>
             <p className="text-xs text-proj-warning mt-3">
               ⚠️ Still some variation
@@ -1058,16 +1073,17 @@ Negative
             </div>
             <CodeBlock label="Reliable">
               {`Examples:
-"Great!" → Positive
-"Slow service" → Negative
-"Amazing!" → Positive
+"Pizza was great!" → Food:Positive
+"Driver was rude" → Delivery:Negative
+"Fast delivery, cold pizza" → Food:Negative, Delivery:Positive
 
-Input: "This is bad"
+Input: "The food arrived cold but the
+delivery guy was really nice"
 
 Output:
-Negative
+Food:Negative, Delivery:Positive
 
-✓ Consistent & reliable!`}
+✓ Captures all aspects!`}
             </CodeBlock>
             <p className="text-xs text-proj-success mt-3">
               ✅ Perfect format every time
@@ -1107,14 +1123,17 @@ The goal is to slow the model down so it can reason correctly.
           </p>
           <CodeBlock label="Logic Fix">
             {`Prompt:
-Roger has 5 balls. He buys 2 cans of 3 balls.
-How many now? Let's think step by step.
+I have $50. I buy 3 coffees at $4 each and
+2 sandwiches at $8 each. How much money do I
+have left? Let's think step by step.
 
 Output:
-1. Roger starts with 5.
-2. 2 cans * 3 balls = 6 balls.
-3. 5 + 6 = 11.
-Answer: 11.`}
+1. Starting amount: $50
+2. Coffee cost: 3 × $4 = $12
+3. Sandwich cost: 2 × $8 = $16
+4. Total spent: $12 + $16 = $28
+5. Money left: $50 - $28 = $22
+Answer: $22`}
           </CodeBlock>
         </div>
         <div className="bg-indigo-950 min-h-[300px] md:h-full relative overflow-hidden flex items-center justify-center order-first md:order-last">
@@ -1154,7 +1173,7 @@ This demonstrates when and why to use reasoning prompts.
     render: () => (
       <div className="min-h-full flex flex-col justify-center items-center py-8">
         <HandsOnBadge />
-        <Title className="mb-12">The Logic Puzzle Solver</Title>
+        <Title className="mb-12">The Social Media Counter</Title>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 w-full">
           <div className="bg-gray-300/30 p-8 rounded-xl border border-proj-border space-y-4">
             <h3 className="text-2xl font-bold text-proj-text">
@@ -1165,16 +1184,17 @@ This demonstrates when and why to use reasoning prompts.
               (1) as-is, (2) with "Let's think step by step."
             </p>
             <div className="bg-proj-surface p-4 rounded font-mono text-sm text-proj-accent">
-              "I went to the market and bought 10 apples. I gave 2 to my
-              neighbor and 2 to the repairman. Then I went and bought 5 more
-              bananas and ate 1 apple. How many apples do I have left?"
+              "I have 100 followers on Instagram. On Monday, 15 people
+              unfollowed me but 20 new people followed. On Tuesday, I posted
+              a viral reel and got 50 new followers. How many followers do I
+              have now?"
             </div>
             <div className="bg-gray-100/60 p-4 rounded-lg text-sm text-proj-text space-y-2">
               <div className="font-bold text-proj-accent">Checklist</div>
               <ul className="list-disc list-inside space-y-1">
                 <li>Run without reasoning → capture the answer</li>
                 <li>Add "Let's think step by step" → capture the answer</li>
-                <li>Note any hallucinations or arithmetic mistakes</li>
+                <li>Note any arithmetic mistakes or confusion</li>
               </ul>
             </div>
             <p className="text-xs text-gray-700">
@@ -1182,12 +1202,11 @@ This demonstrates when and why to use reasoning prompts.
             </p>
           </div>
           <CodeBlock label="Expected Reasoning">
-            {`1. Start: 10 apples.
-2. Gave neighbor 2: 10 - 2 = 8.
-3. Gave repairman 2: 8 - 2 = 6.
-4. Bought 5 bananas (Irrelevant).
-5. Ate 1 apple: 6 - 1 = 5.
-Final Answer: 5 apples.`}
+            {`1. Start: 100 followers
+2. Monday unfollows: 100 - 15 = 85
+3. Monday new follows: 85 + 20 = 105
+4. Tuesday viral post: 105 + 50 = 155
+Final Answer: 155 followers`}
           </CodeBlock>
         </div>
       </div>
@@ -1239,16 +1258,16 @@ Define the schema, forbid markdown, and require raw JSON output.
             <LivePlayground
               label="Live JSON Extractor"
               buttonLabel="Extract JSON ✨"
-              defaultInput="Hi, I am Rajesh, a 29 year old Senior Developer from Chandigarh. I love Cricket and Coding."
-              defaultSystem={`You are a strict Data Extraction API.
-Input: Unstructured Text.
+              defaultInput="Hi! I'm looking to book a table for 4 people on Saturday evening around 7 PM. We'd prefer a window seat if possible. My contact is 98765-43210."
+              defaultSystem={`You are a Restaurant Booking Data Extractor.
+Input: Customer booking message (unstructured text).
 Output: Valid JSON matching this TypeScript Interface:
-interface Profile {
-  name: string;
-  age: number | null;
-  role: string | null;
-  location: string | null;
-  interests: string[];
+interface Reservation {
+  partySize: number | null;
+  date: string | null;
+  time: string | null;
+  preferences: string[];
+  phone: string | null;
 }
 Constraint: Output ONLY raw JSON. No markdown blocks.`}
               defaultTemperature={0}
@@ -1289,9 +1308,9 @@ This is the primary control mechanism in production systems.
                 Try these Personas:
               </strong>
               <ul className="text-sm text-proj-text space-y-2 list-disc pl-4">
-                <li>"You are a helpful assistant." (Standard)</li>
-                <li>"You are a grumpy old man." (Tone check)</li>
-                <li>"You are a JSON converter." (Utility)</li>
+                <li>"You are a professional customer support agent." (Formal)</li>
+                <li>"You are a friendly gym trainer encouraging clients." (Motivational)</li>
+                <li>"You are a strict code reviewer who only points out issues." (Critical)</li>
               </ul>
             </div>
           </div>
@@ -1301,8 +1320,8 @@ This is the primary control mechanism in production systems.
             <LivePlayground
               label="Role Playground"
               buttonLabel="Test Role ✨"
-              defaultSystem="You are a sarcastic robot from the year 3000."
-              defaultInput="How do I make a cup of tea?"
+              defaultSystem="You are a friendly barista at a busy coffee shop. You're helpful but keep responses short since there's a line."
+              defaultInput="What's your most popular drink?"
               defaultTemperature={0.6}
             />
           </div>
