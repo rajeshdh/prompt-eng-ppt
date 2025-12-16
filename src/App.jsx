@@ -31,8 +31,9 @@ import {
 
 // --- Gemini API Helper ---
 
+// Default to a widely available model for v1beta; override with VITE_GEMINI_MODEL if needed.
 const MODEL_ID =
-  import.meta.env.VITE_GEMINI_MODEL || "gemini-1.5-flash-002"; // stable model to avoid preview limits
+  import.meta.env.VITE_GEMINI_MODEL || "gemini-1.5-flash";
 
 const callGemini = async ({
   userPrompt,
