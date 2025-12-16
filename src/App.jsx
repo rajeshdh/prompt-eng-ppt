@@ -29,11 +29,14 @@ import {
   QrCode,
 } from "lucide-react";
 
-// --- Gemini API Helper ---
+// --- LLM API Helper ---
 
-// Default to a widely available model for v1beta; override with VITE_GEMINI_MODEL if needed.
-const MODEL_ID =
-  import.meta.env.VITE_GEMINI_MODEL || "gemini-1.5-flash";
+// Gemini defaults (v1beta)
+const GEMINI_MODEL = import.meta.env.VITE_GEMINI_MODEL || "gemini-1.5-flash";
+
+// OpenRouter defaults (set VITE_OPENROUTER_API_KEY to use this path)
+const OPENROUTER_MODEL =
+  import.meta.env.VITE_OPENROUTER_MODEL || "openai/gpt-4o-mini";
 
 const callGemini = async ({
   userPrompt,
@@ -42,10 +45,46 @@ const callGemini = async ({
   maxTokens = 300,
   stopSequences = [],
 }) => {
+  const openRouterKey = import.meta.env.VITE_OPENROUTER_API_KEY || "";
+  const useOpenRouter = Boolean(openRouterKey);
+
+  if (useOpenRouter) {
+    try {
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${openRouterKey}`,
+          "HTTP-Referer": window?.location?.origin || "http://localhost",
+          "X-Title": "Prompt Engineering Slides",
+        },
+        body: JSON.stringify({
+          model: OPENROUTER_MODEL,
+          messages: [
+            { role: "system", content: systemInstruction || "" },
+            { role: "user", content: userPrompt },
+          ],
+          temperature,
+          max_tokens: maxTokens,
+          stop: stopSequences,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        const msg = data?.error?.message || response.statusText;
+        throw new Error(`(OpenRouter ${response.status}) ${msg}`);
+      }
+      return data?.choices?.[0]?.message?.content?.trim() || "No response generated.";
+    } catch (e) {
+      console.error(e);
+      return `Error: ${e.message}. (Check OpenRouter API key/model)`;
+    }
+  }
+
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
   try {
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_ID}:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
